@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Selector Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            padding: 2rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea {
+            width: 100%;
+            height: 160px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fefefe;
+            resize: vertical;
+        }
+
+        select {
+            padding: 0.5rem;
+            font-size: 1rem;
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        button {
+            background-color: #2d89ef;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #1a6edb;
+        }
+
+        pre#output {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            font-family: monospace;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Selector Generator</h1>
+
+    <div class="section">
+        <label for="targetInput"><strong>Paste the exact target element HTML:</strong></label>
+        <textarea id="targetInput"
+            placeholder="Paste the specific element you want to generate a selector for..."></textarea>
+    </div>
+
+    <div class="section">
+        <label for="domInput"><strong>(Optional) Paste the full DOM HTML here:</strong></label>
+        <textarea id="domInput" placeholder="Paste full DOM block (optional)..."></textarea>
+    </div>
+
+    <div class="section">
+        <h3>Selector Preferences</h3>
+
+        <div>
+            <label for="framework">Framework:</label>
+            <select id="framework">
+                <option value="playwright">Playwright</option>
+                <option value="selenium">Selenium</option>
+                <option value="cypress">Cypress</option>
+                <option value="puppeteer">Puppeteer</option>
+                <option value="wdio">WebdriverIO</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="language">Language:</label>
+            <select id="language">
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="java">Java</option>
+                <option value="csharp">C#</option>
+            </select>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="preferDataTestId" checked> Prefer <code>data-test-id</code></label>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="avoidDynamicClasses" checked> Avoid dynamic class names</label>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="preferTextContent"> Prefer matching text content</label>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="preferAccessibility"> Prefer accessibility attributes</label>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="preferDeepestElement" checked> Prefer bottom-most element</label>
+        </div>
+
+        <div>
+            <label><input type="checkbox" id="pageScoped" checked> Generate selector scoped to entire page</label>
+        </div>
+
+        <div>
+            <button id="generateBtn">Generate Selector</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <label for="output"><strong>Generated Selector:</strong></label>
+        <pre id="output"></pre>
+    </div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            const targetHtml = document.getElementById('targetInput').value.trim();
+            const containerHtml = document.getElementById('domInput').value.trim();
+            const framework = document.getElementById('framework').value;
+            const language = document.getElementById('language').value;
+
+            const useDataTestId = document.getElementById('preferDataTestId').checked;
+            const avoidDynamicClasses = document.getElementById('avoidDynamicClasses').checked;
+            const preferText = document.getElementById('preferTextContent').checked;
+            const preferA11y = document.getElementById('preferAccessibility').checked;
+            const preferDeepest = document.getElementById('preferDeepestElement').checked;
+            const pageScoped = document.getElementById('pageScoped').checked;
+
+            if (!targetHtml) {
+                document.getElementById('output').innerText = 'Please paste the target element HTML.';
+                return;
+            }
+
+            const parser = new DOMParser();
+
+            const targetDoc = parser.parseFromString(targetHtml, 'text/html');
+            const targetEl = targetDoc.body.firstElementChild;
+            if (!targetEl) {
+                document.getElementById('output').innerText = 'Could not parse target element HTML.';
+                return;
+            }
+
+            let containerDoc;
+            if (containerHtml) {
+                containerDoc = parser.parseFromString(containerHtml, 'text/html');
+            } else {
+                const wrapperHtml = `<div id="wrapper">${targetHtml}</div>`;
+                containerDoc = parser.parseFromString(wrapperHtml, 'text/html');
+            }
+
+            function isEqualStructure(el1, el2) {
+                if (!el1 || !el2 || el1.tagName !== el2.tagName) return false;
+
+                const attrs1 = Array.from(el1.attributes).map(a => [a.name, a.value]);
+                const attrs2 = Array.from(el2.attributes).map(a => [a.name, a.value]);
+
+                const attrMatch = attrs1.every(([name, value]) =>
+                    el2.getAttribute(name) === value
+                ) && attrs1.length === attrs2.length;
+
+                const children1 = Array.from(el1.children);
+                const children2 = Array.from(el2.children);
+
+                const childrenMatch =
+                    children1.length === children2.length &&
+                    children1.every((c, i) => isEqualStructure(c, children2[i]));
+
+                return attrMatch && childrenMatch;
+            }
+
+            function findElementMatch(container, target) {
+                const all = Array.from(container.body.querySelectorAll('*'));
+                const matches = all.filter(el => isEqualStructure(el, target));
+
+                if (!matches.length) return null;
+
+                if (preferDeepest) {
+                    return matches.reduce((deepest, current) => {
+                        const getDepth = el => {
+                            let d = 0;
+                            while (el.parentElement) { d++; el = el.parentElement; }
+                            return d;
+                        };
+                        return getDepth(current) > getDepth(deepest) ? current : deepest;
+                    }, matches[0]);
+                }
+
+                return matches[0];
+            }
+
+            const root = findElementMatch(containerDoc, targetEl);
+            if (!root) {
+                document.getElementById('output').innerText = 'No matching element found in DOM input.';
+                return;
+            }
+
+            const dynamicPrefixes = ['ng-', 'jsx-', 'css-', 'tw-', 'sc-', 'chakra-', 'emotion-'];
+
+            function buildSelectorPath(el, limitToRoot = false) {
+                const path = [];
+                const rootLimit = limitToRoot ? el : null;
+
+                while (el && el.tagName && el.tagName !== 'BODY') {
+                    const tag = el.tagName.toLowerCase();
+                    if (useDataTestId && el.hasAttribute('data-test-id')) {
+                        path.unshift(`[data-test-id="${el.getAttribute('data-test-id')}"]`);
+                        break;
+                    } else if (el.id) {
+                        path.unshift(`#${CSS.escape(el.id)}`);
+                        break;
+                    } else {
+                        let part = tag;
+                        const classList = Array.from(el.classList)
+                            .filter(cls => {
+                                if (!avoidDynamicClasses) return true;
+                                return !dynamicPrefixes.some(prefix => cls.startsWith(prefix)) && !/^[a-zA-Z0-9]{8,}$/.test(cls);
+                            });
+                        if (classList.length) {
+                            part += '.' + classList.map(CSS.escape).join('.');
+                        }
+                        path.unshift(part);
+                    }
+
+                    if (limitToRoot && el === rootLimit) break;
+                    el = el.parentElement;
+                }
+
+                const last = path[path.length - 1];
+                const trimmedText = root.textContent.trim();
+                if (preferText && trimmedText && trimmedText.length < 60) {
+                    path[path.length - 1] = `${last}:has-text("${trimmedText}")`;
+                }
+
+                return path.join(' > ');
+            }
+
+            const selector = buildSelectorPath(root, !pageScoped);
+            const escaped = selector.replace(/"/g, '\\"');
+            let output = '';
+
+            if (framework === 'playwright') {
+                if (language === 'javascript' || language === 'python' || language === 'java') {
+                    output = `page.locator("${escaped}")`;
+                } else if (language === 'csharp') {
+                    output = `page.Locator("${escaped}");`;
+                }
+            } else if (framework === 'selenium') {
+                switch (language) {
+                    case 'javascript':
+                        output = `driver.findElement(By.cssSelector("${escaped}"))`; break;
+                    case 'python':
+                        output = `driver.find_element(By.CSS_SELECTOR, "${escaped}")`; break;
+                    case 'java':
+                        output = `driver.findElement(By.cssSelector("${escaped}"));`; break;
+                    case 'csharp':
+                        output = `driver.FindElement(By.CssSelector("${escaped}"));`; break;
+                }
+            } else if (framework === 'cypress') {
+                output = `cy.get("${escaped}")`;
+            } else if (framework === 'puppeteer') {
+                output = `await page.$("${escaped}")`;
+            } else if (framework === 'wdio') {
+                output = `await $("${escaped}")`;
+            } else {
+                output = `// Unsupported combo`;
+            }
+
+            document.getElementById('output').innerText = output;
+        });
+
+    </script>
+</body>
+</html>
