@@ -267,6 +267,10 @@
                     if (el.hasAttribute('data-test-id')) {
                         path.unshift(`[data-test-id="${el.getAttribute('data-test-id')}"]`);
                         break;
+                    }
+                    else if (el.hasAttribute('data-testid')) {
+                        path.unshift(`[data-testid="${el.getAttribute('data-testid')}"]`);
+                        break;
                     } else if (el.id) {
                         path.unshift(`#${CSS.escape(el.id)}`);
                         break;
@@ -296,7 +300,7 @@
             }
 
             // Best selector (prefers data-test-id or id, respects pageScoped)
-            const bestSelectorStr = buildSelectorPath(root, pageScoped);
+            const bestSelectorStr = buildSelectorPath(root, !pageScoped);
 
             // CSS selector (always full path from document root)
             const cssSelectorStr = buildSelectorPath(root, true);
