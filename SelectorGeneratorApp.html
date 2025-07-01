@@ -75,13 +75,14 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s ease;
+            margin-top: 0.5rem;
         }
 
         button:hover {
             background-color: #1a6edb;
         }
 
-        pre#output {
+        pre {
             background-color: #f4f4f4;
             padding: 1rem;
             font-family: monospace;
@@ -90,12 +91,12 @@
             overflow-x: auto;
             white-space: pre-wrap;
             word-break: break-word;
+            min-height: 3rem;
         }
     </style>
 </head>
 
 <body>
-
     <h1>Selector Generator</h1>
 
     <div class="section">
@@ -134,27 +135,20 @@
         </div>
 
         <div>
-            <label><input type="checkbox" id="preferDataTestId" checked> Prefer <code>data-test-id</code></label>
+            <label><input type="checkbox" id="avoidDynamicClasses" checked> Avoid Dynamic Classes</label>
         </div>
 
         <div>
-            <label><input type="checkbox" id="avoidDynamicClasses" checked> Avoid dynamic class names</label>
+            <label><input type="checkbox" id="preferTextContent"> Use Text Matching</label>
         </div>
 
         <div>
-            <label><input type="checkbox" id="preferTextContent"> Prefer matching text content</label>
+            <label><input type="checkbox" id="preferDeepestElement" checked> If Multiple Matches, Use Most Deeply
+                Nested</label>
         </div>
 
         <div>
-            <label><input type="checkbox" id="preferAccessibility"> Prefer accessibility attributes</label>
-        </div>
-
-        <div>
-            <label><input type="checkbox" id="preferDeepestElement" checked> Prefer bottom-most element</label>
-        </div>
-
-        <div>
-            <label><input type="checkbox" id="pageScoped" checked> Generate selector scoped to entire page</label>
+            <label><input type="checkbox" id="pageScoped" checked> Build Full Selector Path From Document Root</label>
         </div>
 
         <div>
@@ -163,8 +157,21 @@
     </div>
 
     <div class="section">
-        <label for="output"><strong>Generated Selector:</strong></label>
-        <pre id="output"></pre>
+        <label><strong>Best Selector (Usually an ID):</strong></label>
+        <pre id="bestSelector"></pre>
+        <button onclick="copyToClipboard('bestSelector')">Copy</button>
+    </div>
+
+    <div class="section">
+        <label><strong>CSS Selector:</strong></label>
+        <pre id="cssSelector"></pre>
+        <button onclick="copyToClipboard('cssSelector')">Copy</button>
+    </div>
+
+    <div class="section">
+        <label><strong>XPath Selector:</strong></label>
+        <pre id="xpathSelector"></pre>
+        <button onclick="copyToClipboard('xpathSelector')">Copy</button>
     </div>
 
     <script>
@@ -174,15 +181,16 @@
             const framework = document.getElementById('framework').value;
             const language = document.getElementById('language').value;
 
-            const useDataTestId = document.getElementById('preferDataTestId').checked;
             const avoidDynamicClasses = document.getElementById('avoidDynamicClasses').checked;
             const preferText = document.getElementById('preferTextContent').checked;
-            const preferA11y = document.getElementById('preferAccessibility').checked;
             const preferDeepest = document.getElementById('preferDeepestElement').checked;
             const pageScoped = document.getElementById('pageScoped').checked;
 
             if (!targetHtml) {
-                document.getElementById('output').innerText = 'Please paste the target element HTML.';
+                document.getElementById('bestSelector').innerText = '';
+                document.getElementById('cssSelector').innerText = '';
+                document.getElementById('xpathSelector').innerText = '';
+                alert('Please paste the target element HTML.');
                 return;
             }
 
@@ -191,7 +199,7 @@
             const targetDoc = parser.parseFromString(targetHtml, 'text/html');
             const targetEl = targetDoc.body.firstElementChild;
             if (!targetEl) {
-                document.getElementById('output').innerText = 'Could not parse target element HTML.';
+                alert('Could not parse target element HTML.');
                 return;
             }
 
@@ -245,7 +253,7 @@
 
             const root = findElementMatch(containerDoc, targetEl);
             if (!root) {
-                document.getElementById('output').innerText = 'No matching element found in DOM input.';
+                alert('No matching element found in DOM input.');
                 return;
             }
 
@@ -256,20 +264,18 @@
                 const rootLimit = limitToRoot ? el : null;
 
                 while (el && el.tagName && el.tagName !== 'BODY') {
-                    const tag = el.tagName.toLowerCase();
-                    if (useDataTestId && el.hasAttribute('data-test-id')) {
+                    if (el.hasAttribute('data-test-id')) {
                         path.unshift(`[data-test-id="${el.getAttribute('data-test-id')}"]`);
                         break;
                     } else if (el.id) {
                         path.unshift(`#${CSS.escape(el.id)}`);
                         break;
                     } else {
-                        let part = tag;
-                        const classList = Array.from(el.classList)
-                            .filter(cls => {
-                                if (!avoidDynamicClasses) return true;
-                                return !dynamicPrefixes.some(prefix => cls.startsWith(prefix)) && !/^[a-zA-Z0-9]{8,}$/.test(cls);
-                            });
+                        let part = el.tagName.toLowerCase();
+                        const classList = Array.from(el.classList).filter(cls => {
+                            if (!avoidDynamicClasses) return true;
+                            return !dynamicPrefixes.some(prefix => cls.startsWith(prefix)) && !/^[a-zA-Z0-9]{8,}$/.test(cls);
+                        });
                         if (classList.length) {
                             part += '.' + classList.map(CSS.escape).join('.');
                         }
@@ -289,40 +295,113 @@
                 return path.join(' > ');
             }
 
-            const selector = buildSelectorPath(root, !pageScoped);
-            const escaped = selector.replace(/"/g, '\\"');
-            let output = '';
+            // Best selector (prefers data-test-id or id, respects pageScoped)
+            const bestSelectorStr = buildSelectorPath(root, pageScoped);
 
-            if (framework === 'playwright') {
-                if (language === 'javascript' || language === 'python' || language === 'java') {
-                    output = `page.locator("${escaped}")`;
-                } else if (language === 'csharp') {
-                    output = `page.Locator("${escaped}");`;
+            // CSS selector (always full path from document root)
+            const cssSelectorStr = buildSelectorPath(root, true);
+
+            // XPath selector generator function
+            function buildXPath(el) {
+                if (el.id) {
+                    return `//*[@id="${el.id}"]`;
                 }
-            } else if (framework === 'selenium') {
-                switch (language) {
-                    case 'javascript':
-                        output = `driver.findElement(By.cssSelector("${escaped}"))`; break;
-                    case 'python':
-                        output = `driver.find_element(By.CSS_SELECTOR, "${escaped}")`; break;
-                    case 'java':
-                        output = `driver.findElement(By.cssSelector("${escaped}"));`; break;
-                    case 'csharp':
-                        output = `driver.FindElement(By.CssSelector("${escaped}"));`; break;
+                if (el === document.body) {
+                    return '/html/body';
                 }
-            } else if (framework === 'cypress') {
-                output = `cy.get("${escaped}")`;
-            } else if (framework === 'puppeteer') {
-                output = `await page.$("${escaped}")`;
-            } else if (framework === 'wdio') {
-                output = `await $("${escaped}")`;
-            } else {
-                output = `// Unsupported combo`;
+
+                const parts = [];
+                while (el && el.nodeType === Node.ELEMENT_NODE && el.tagName.toLowerCase() !== 'html') {
+                    let index = 1;
+                    let sibling = el.previousElementSibling;
+                    while (sibling) {
+                        if (sibling.tagName === el.tagName) index++;
+                        sibling = sibling.previousElementSibling;
+                    }
+                    parts.unshift(`${el.tagName.toLowerCase()}[${index}]`);
+                    el = el.parentNode;
+                }
+                return '/' + parts.join('/');
             }
 
-            document.getElementById('output').innerText = output;
+            // We must adapt buildXPath to work on containerDoc and root element inside that doc
+            // But containerDoc may not be in the real DOM, so we can’t call document.body etc.
+            // We'll do a custom xpath builder for containerDoc root:
+
+            function buildXPathInDoc(el) {
+                if (!el) return '';
+
+                if (el.id) {
+                    return `//*[@id="${el.id}"]`;
+                }
+
+                let current = el;
+                const parts = [];
+                while (current && current.nodeType === 1 && current.tagName.toLowerCase() !== 'html') {
+                    let index = 1;
+                    let sibling = current.previousElementSibling;
+                    while (sibling) {
+                        if (sibling.tagName === current.tagName) index++;
+                        sibling = sibling.previousElementSibling;
+                    }
+                    parts.unshift(`${current.tagName.toLowerCase()}[${index}]`);
+                    current = current.parentElement;
+                }
+                return '/' + parts.join('/');
+            }
+
+            const bestSelector = bestSelectorStr;
+            const cssSelector = cssSelectorStr;
+            const xpathSelector = buildXPathInDoc(root);
+
+            // Format selectors for framework/language
+
+            function formatSelectorForFramework(selector, isCss = true) {
+                const escaped = selector.replace(/"/g, '\\"');
+
+                if (framework === 'playwright') {
+                    if (language === 'javascript' || language === 'python' || language === 'java') {
+                        return isCss ? `page.locator("${escaped}")` : `page.locator(${selector})`;
+                    } else if (language === 'csharp') {
+                        return isCss ? `page.Locator("${escaped}");` : `page.Locator(${selector});`;
+                    }
+                } else if (framework === 'selenium') {
+                    switch (language) {
+                        case 'javascript':
+                            return isCss ? `driver.findElement(By.cssSelector("${escaped}"))` : `driver.findElement(By.xpath("${escaped}"))`;
+                        case 'python':
+                            return isCss ? `driver.find_element(By.CSS_SELECTOR, "${escaped}")` : `driver.find_element(By.XPATH, "${escaped}")`;
+                        case 'java':
+                            return isCss ? `driver.findElement(By.cssSelector("${escaped}"));` : `driver.findElement(By.xpath("${escaped}"));`;
+                        case 'csharp':
+                            return isCss ? `driver.FindElement(By.CssSelector("${escaped}"));` : `driver.FindElement(By.XPath("${escaped}"));`;
+                    }
+                } else if (framework === 'cypress') {
+                    return isCss ? `cy.get("${escaped}")` : `cy.xpath("${escaped}")`;
+                } else if (framework === 'puppeteer') {
+                    return isCss ? `await page.$("${escaped}")` : `await page.$x("${escaped}")`;
+                } else if (framework === 'wdio') {
+                    return isCss ? `await $("${escaped}")` : `await $x("${escaped}")`;
+                } else {
+                    return '// Unsupported framework/language';
+                }
+            }
+
+            document.getElementById('bestSelector').innerText = formatSelectorForFramework(bestSelector, true);
+            document.getElementById('cssSelector').innerText = formatSelectorForFramework(cssSelector, true);
+            document.getElementById('xpathSelector').innerText = formatSelectorForFramework(xpathSelector, false);
         });
 
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }).catch(() => {
+                alert('Failed to copy!');
+            });
+        }
     </script>
+
 </body>
+
 </html>
