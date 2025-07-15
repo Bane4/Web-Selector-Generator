@@ -30,16 +30,17 @@ A browser-based tool that generates robust CSS and XPath selectors for automated
 
 ## How to Use
 
-1. Paste the HTML of the element you want to target in the **Target Element** box.
-2. (Optional) Paste the full HTML of the page in the **Full DOM** box.
-3. Choose your **framework** and **language** from the dropdowns.
-4. Adjust preferences:
+1. Download the HTML file (the whole app is contained in here) and open it in your browser of choice.
+2. Paste the HTML of the element you want to target in the **Target Element** box.
+3. (Optional) Paste the full HTML of the page in the **Full DOM** box.
+4. Choose your **framework** and **language** from the dropdowns.
+5. Adjust preferences:
    - Avoid dynamic classes
    - Use text content in selector
    - Prefer most deeply nested match
    - Build selector from document root
-5. Click **Generate Selector**.
-6. Copy the **Best**, **CSS**, or **XPath** selector using the buttons below the results.
+6. Click **Generate Selector**.
+7. Copy the **Best**, **CSS**, or **XPath** selector using the buttons below the results.
 
 ## Example Use Case
 
