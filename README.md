@@ -1,6 +1,6 @@
 # Selector Generator
 
-A browser-based tool that generates robust CSS and XPath selectors for automated UI testing. Built to support multiple testing frameworks and languages with a flexible set of options.
+A browser-based tool that generates selectors for automated UI testing. Built to support multiple testing frameworks and languages with a flexible set of options.
 
 ## Features
 
