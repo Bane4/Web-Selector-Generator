@@ -83,6 +83,7 @@ Adopts a scoring model to output **stable, minimal selectors**; adds click-to-se
 - **Preview**: increased default height
 
 ### Why
+- More useful selectors
 - Reduce flaky selectors and review churn
 - Make the workflow obvious (render → click → copy)
 - Fix Playwright XPath runtime issue
