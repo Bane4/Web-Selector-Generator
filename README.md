@@ -36,7 +36,7 @@ Single-file web app that turns pasted HTML into **stable, minimal selectors** fo
 
 ---
 
-## How It Chooses “Best”
+## How It Chooses “Best” | Points System
 
 **Signals (+):**
 - `data-testid` (+40)
