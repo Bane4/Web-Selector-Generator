@@ -12,7 +12,7 @@ Single-file web app that turns pasted HTML into **stable, minimal selectors** fo
 - Penalizes brittle patterns (`:nth-child`, utility classes, long chains)
 - Per-framework formatting (Playwright/Cypress/RTL/WDIO)
 - Top alternatives with scores + reasons
-- Copy buttons, bigger preview, clear pressed/hover states on buttons
+- Copy buttons
 
 ---
 
