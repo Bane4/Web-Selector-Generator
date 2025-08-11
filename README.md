@@ -11,7 +11,7 @@ Single-file web app that turns pasted HTML into **stable, minimal selectors** fo
 - Scoring model prefers: `data-testid` → stable `#id` → **role+name** → **aria** → CSS path
 - Penalizes brittle patterns (`:nth-child`, utility classes, long chains)
 - Per-framework formatting (Playwright/Cypress/RTL/WDIO)
-- Top 5 alternatives with scores + reasons
+- Top alternatives with scores + reasons
 - Copy buttons, bigger preview, clear pressed/hover states on buttons
 
 ---
