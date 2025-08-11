@@ -2,379 +2,745 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Selector Generator</title>
+    <title>Selector Generator — Scored v2 (Non‑Breaking)</title>
     <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --ink: #e5e7eb;
+            --muted: #9ca3af;
+            --accent: #60a5fa;
+            --bad: #ef4444;
+            --ok: #a3e635;
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
-            font-family: system-ui, sans-serif;
-            background: #f9f9f9;
-            color: #333;
-            padding: 2rem;
             margin: 0;
-            line-height: 1.5;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+            background: #0b1022;
+            color: var(--ink);
         }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 2rem;
+        header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #1f2937;
+            background: linear-gradient(180deg, #0f172a, #0b1022);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: .2px;
+        }
+
+        .wrap {
+            display: grid;
+            grid-template-columns: 560px 1fr;
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .col {
+            background: var(--panel);
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .col h2 {
+            margin: 0;
+            padding: 10px 12px;
+            font-size: 22px;
+            color: var(--muted);
+            border-bottom: 1px solid #1f2937;
+            background: #0f172a;
         }
 
         .section {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 12px;
         }
 
         textarea {
             width: 100%;
-            height: 160px;
-            padding: 1rem;
-            font-family: monospace;
-            font-size: 0.9rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background: #fefefe;
+            min-height: 180px;
             resize: vertical;
+            border-radius: 10px;
+            border: 1px solid #273449;
+            background: #0b1222;
+            color: var(--ink);
+            padding: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 16px;
         }
 
-        select {
-            padding: 0.5rem;
-            font-size: 1rem;
-            margin-top: 0.25rem;
-            margin-bottom: 1rem;
+        .row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .row>* {
+            margin: 6px 0;
+        }
+
+        select,
+        button,
+        input[type="text"] {
+            background: #0b1222;
+            color: var(--ink);
+            border: 1px solid #273449;
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 18px;
+        }
+
+        button.primary {
+            background: linear-gradient(180deg, #0ea5e9, #0891b2);
+            border-color: #0891b2;
+        }
+
+        button.ghost {
+            background: #0b1222;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 18px;
+        }
+
+        .preview-wrap {
+            position: relative;
+            height: 520px;
+            border: 1px dashed #273449;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        iframe {
             width: 100%;
-            max-width: 300px;
+            height: 100%;
+            border: 0;
+            background: white;
         }
 
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .status {
+            font-size: 18px;
+            color: var(--muted);
         }
 
-        input[type="checkbox"] {
-            margin-right: 0.5rem;
+        .out {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: start;
+            margin: 10px 0 14px;
+        }
+
+        .code {
+            background: #0b1222;
+            border: 1px solid #273449;
+            border-radius: 10px;
+            padding: 10px;
+            overflow: auto;
+            white-space: pre;
+            max-height: 120px;
+            font-size: 14px;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 3px 8px;
+            border: 1px solid #273449;
+            border-radius: 999px;
+            font-size: 18px;
+            color: #c7d2fe;
+        }
+
+        .score {
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .alt {
+            border: 1px solid #273449;
+            border-radius: 10px;
+            padding: 8px;
+            background: #0b1222;
+        }
+
+        .alt h3 {
+            margin: 0 0 6px;
+            font-size: 14px;
+            color: #b9e6ff;
+        }
+
+        .alt .meta {
+            font-size: 18px;
+            color: var(--muted);
+        }
+
+        .k {
+            color: #a7f3d0;
+        }
+
+        .v {
+            color: #93c5fd;
+        }
+
+        .hl {
+            outline: 2px solid var(--accent) !important;
+            outline-offset: 2px !important;
+        }
+
+        .legend {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .legend .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        .warn {
+            color: #fca5a5;
+        }
+
+        footer {
+            padding: 10px 16px 20px;
+            color: #6b7280;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        @media (max-width: 1100px) {
+            .wrap {
+                grid-template-columns: 1fr;
+            }
         }
 
         button {
-            background-color: #2d89ef;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-top: 0.5rem;
+            transition: background-color .12s ease, border-color .12s ease,
+                box-shadow .12s ease, transform .05s ease, filter .12s ease;
         }
 
-        button:hover {
-            background-color: #1a6edb;
+        /* Primary buttons */
+        button.primary:hover {
+            filter: brightness(1.06);
         }
 
-        pre {
-            background-color: #f4f4f4;
-            padding: 1rem;
-            font-family: monospace;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
-            min-height: 3rem;
+        button.primary:active {
+            filter: brightness(0.92);
+            transform: translateY(1px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08),
+                inset 0 -2px 0 rgba(0, 0, 0, .25);
+        }
+
+        /* Ghost buttons */
+        button.ghost:hover {
+            background: #121a2c;
+            /* slightly lighter than #0b1222 */
+            border-color: #334155;
+        }
+
+        button.ghost:active {
+            background: #0a101f;
+            /* slightly darker on press */
+            border-color: #1f2a3d;
+            transform: translateY(1px);
         }
     </style>
 </head>
 
 <body>
-    <h1>Selector Generator</h1>
+    <header>
+        <h1>Selector Generator — Scored v2 (Non‑Breaking)</h1>
+    </header>
 
-    <div class="section">
-        <label for="targetInput"><strong>Paste the exact target element HTML:</strong></label>
-        <textarea id="targetInput"
-            placeholder="Paste the specific element you want to generate a selector for..."></textarea>
-    </div>
-
-    <div class="section">
-        <label for="domInput"><strong>(Optional) Paste the full DOM HTML here:</strong></label>
-        <textarea id="domInput" placeholder="Paste full DOM block (optional)..."></textarea>
-    </div>
-
-    <div class="section">
-        <h3>Selector Preferences</h3>
-
-        <div>
-            <label for="framework">Framework:</label>
-            <select id="framework">
-                <option value="playwright">Playwright</option>
-                <option value="selenium">Selenium</option>
-                <option value="cypress">Cypress</option>
-                <option value="puppeteer">Puppeteer</option>
-                <option value="wdio">WebdriverIO</option>
-            </select>
+    <div class="wrap">
+        <!-- Left: Input & Preview -->
+        <div class="col">
+            <h2>1) Paste HTML → Render → Click an element</h2>
+            <div class="section">
+                <textarea id="html-input" spellcheck="false"
+                    placeholder="Paste a small HTML snippet or a full document…"></textarea>
+                <div class="row">
+                    <button id="render" class="primary">Render</button>
+                    <span class="hint">Tip: After rendering, <b>click</b> any element inside the preview to generate
+                        selectors.</span>
+                </div>
+            </div>
+            <div class="section">
+                <div class="preview-wrap">
+                    <iframe id="preview" sandbox="allow-same-origin allow-scripts"></iframe>
+                </div>
+                <div class="row" style="justify-content:space-between;">
+                    <div class="legend">
+                        <span class="dot"></span>
+                        <span class="status">Selected element highlighted</span>
+                    </div>
+                    <div class="status" id="selection-path">No element selected</div>
+                </div>
+            </div>
         </div>
 
-        <div>
-            <label for="language">Language:</label>
-            <select id="language">
-                <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-                <option value="csharp">C#</option>
-            </select>
+        <!-- Right: Options & Output -->
+        <div class="col">
+            <h2>2) Options & Outputs</h2>
+            <div class="section">
+                <div class="row">
+                    <label class="row"><input type="checkbox" id="avoidDynamic" checked />&nbsp;Avoid dynamic/utility
+                        classes</label>
+                    <label class="row"><input type="checkbox" id="preferText" />&nbsp;Prefer text (Playwright
+                        only)</label>
+                    <label class="row"><input type="checkbox" id="pageScoped" />&nbsp;CSS full path to
+                        <code>&lt;body&gt;</code></label>
+                </div>
+                <div class="row">
+                    <label>Framework&nbsp;
+                        <select id="framework">
+                            <option value="playwright" selected>Playwright</option>
+                            <option value="cypress">Cypress</option>
+                            <option value="rtl">React Testing Library</option>
+                            <option value="wdio">WebdriverIO</option>
+                        </select>
+                    </label>
+                    <label>Language&nbsp;
+                        <select id="language">
+                            <option value="javascript" selected>JavaScript</option>
+                            <option value="python">Python</option>
+                            <option value="java">Java</option>
+                            <option value="csharp">C#</option>
+                        </select>
+                    </label>
+                    <button id="recompute" class="ghost">Recompute</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="out">
+                    <div>
+                        <div class="pill">Best Selector</div>
+                        <div id="bestOut" class="code">(click an element)</div>
+                        <div class="hint">Chosen via scoring model (data‑test &gt; id &gt; role/name &gt; aria &gt;
+                            css). Penalizes nth‑child, utility classes, long chains.</div>
+                    </div>
+                    <button class="ghost" data-copy="#bestOut">Copy</button>
+                </div>
+
+                <div class="out">
+                    <div>
+                        <div class="pill">CSS Selector</div>
+                        <div id="cssOut" class="code">(click an element)</div>
+                        <div class="hint">Filtered classes; "Full path" forces chain from <code>&lt;body&gt;</code>.
+                        </div>
+                    </div>
+                    <button class="ghost" data-copy="#cssOut">Copy</button>
+                </div>
+
+                <div class="out">
+                    <div>
+                        <div class="pill">XPath Selector</div>
+                        <div id="xpathOut" class="code">(click an element)</div>
+                        <div class="hint">Used only when needed. Playwright uses <code>page.locator("xpath=…")</code>.
+                        </div>
+                    </div>
+                    <button class="ghost" data-copy="#xpathOut">Copy</button>
+                </div>
+
+                <div class="grid" id="alts"></div>
+            </div>
         </div>
+        <div class="col">
+            <h2>3) Quick Start & Features</h2>
+            <div class="section">
+                <div class="row" style="align-items:flex-start; gap:24px;">
+                    <div style="flex:1; min-width:260px;">
+                        <div class="pill">Quick Start</div>
+                        <ol class="hint" style="margin-top:8px; line-height:1.6;">
+                            <li>Paste your HTML in the box and click <b>Render</b>.</li>
+                            <li>In the preview, <b>click the exact element</b> you want a selector for.</li>
+                            <li>Review the <b>Best Selector</b>. If needed, toggle options (Prefer text, Full path).
+                            </li>
+                            <li>Switch <b>Framework</b> or <b>Language</b> to reformat the output.</li>
+                            <li>Copy the Best/CSS/XPath with the copy buttons.</li>
+                        </ol>
+                    </div>
+                    <div style="flex:1; min-width:260px;">
+                        <div class="pill">What this app does</div>
+                        <ul class="hint" style="margin-top:8px; line-height:1.6;">
+                            <li>Generates multiple selector candidates and scores them for <b>stability</b> and
+                                <b>readability</b>.</li>
+                            <li>Prefers <code>data-testid</code>, stable <code>#id</code>, <b>role+name</b>, then
+                                <b>aria</b>, then CSS path.</li>
+                            <li>Penalizes brittle patterns (e.g., <code>:nth-child</code>, utility classes, long
+                                chains).</li>
+                            <li>Shows Top 5 alternates with scores and reasons.</li>
+                            <li>Formats output for Playwright, Cypress, RTL, or WebdriverIO.</li>
+                        </ul>
+                    </div>
+                    <div style="flex:1; min-width:260px;">
+                        <div class="pill">Tips & caveats</div>
+                        <ul class="hint" style="margin-top:8px; line-height:1.6;">
+                            <li>Add <code>data-testid</
+    v2 — Scoring model, data/role/aria preference, Playwright XPath fix, honest full‑path toggle, and diagnostics. Non‑breaking.
+  </footer>
 
-        <div>
-            <label><input type="checkbox" id="avoidDynamicClasses"> Avoid Dynamic Classes</label>
-        </div>
+<script>
+    // --- Polyfills / small utils ---
+    if (!window.CSS || !CSS.escape) {
+        CSS = window.CSS || {};
+        CSS.escape = CSS.escape || function (v) {
+            return String(v).replace(/[^a-zA-Z0-9_-]/g, m => `\\${m}`);
+        };
+    }
 
-        <div>
-            <label><input type="checkbox" id="preferTextContent"> Use Text Matching</label>
-        </div>
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-        <div>
-            <label><input type="checkbox" id="pageScoped"> Build Full Selector Path From Document Root</label>
-        </div>
+    function copyFrom(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        const txt = el.textContent;
+        navigator.clipboard.writeText(txt).catch(() => { });
+    }
 
-        <div>
-            <button id="generateBtn">Generate Selector</button>
-        </div>
-    </div>
+    // --- Rendering ---
+    const iframe = document.getElementById('preview');
+    const selectionPath = document.getElementById('selection-path');
+    let selectedEl = null;
 
-    <div class="section">
-        <label><strong>Best Selector (Usually an ID):</strong></label>
-        <pre id="bestSelector"></pre>
-        <button onclick="copyToClipboard('bestSelector')">Copy</button>
-    </div>
+    function renderHTML() {
+        const html = document.getElementById('html-input').value || '<div style="padding:16px"><button data-testid="save-btn">Save</button></div>';
+        iframe.srcdoc = html;
+        selectedEl = null;
+        selectionPath.textContent = 'No element selected';
+        ['#bestOut', '#cssOut', '#xpathOut'].forEach(id => document.querySelector(id).textContent = '(click an element)');
+        document.getElementById('alts').innerHTML = '';
 
-    <div class="section">
-        <label><strong>CSS Selector:</strong></label>
-        <pre id="cssSelector"></pre>
-        <button onclick="copyToClipboard('cssSelector')">Copy</button>
-    </div>
+        iframe.onload = () => {
+            const doc = iframe.contentDocument;
+            // add click handler for selection
+            doc.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (selectedEl) selectedEl.classList.remove('hl');
+                selectedEl = e.target;
+                selectedEl.classList.add('hl');
+                selectionPath.textContent = breadcrumb(selectedEl);
+                computeAll();
+            }, true);
+        };
+    }
 
-    <div class="section">
-        <label><strong>XPath Selector:</strong></label>
-        <pre id="xpathSelector"></pre>
-        <button onclick="copyToClipboard('xpathSelector')">Copy</button>
-    </div>
+    function breadcrumb(el) {
+        const parts = [];
+        let cur = el;
+        while (cur && cur.nodeType === 1 && cur.tagName.toLowerCase() !== 'html') {
+            let p = cur.tagName.toLowerCase();
+            if (cur.id) p += `#${cur.id}`;
+            if (cur.classList && cur.classList.length) p += '.' + Array.from(cur.classList).slice(0, 2).join('.');
+            parts.unshift(p);
+            cur = cur.parentElement;
+        }
+        return parts.join(' > ');
+    }
 
-    <script>
-        document.getElementById('generateBtn').addEventListener('click', () => {
-            const targetHtml = document.getElementById('targetInput').value.trim();
-            const containerHtml = document.getElementById('domInput').value.trim();
-            const framework = document.getElementById('framework').value;
-            const language = document.getElementById('language').value;
-
-            const avoidDynamicClasses = document.getElementById('avoidDynamicClasses').checked;
-            const preferText = document.getElementById('preferTextContent').checked;
-            const pageScoped = document.getElementById('pageScoped').checked;
-
-            if (!targetHtml) {
-                document.getElementById('bestSelector').innerText = '';
-                document.getElementById('cssSelector').innerText = '';
-                document.getElementById('xpathSelector').innerText = '';
-                alert('Please paste the target element HTML.');
-                return;
+    // --- Core selector engine ---
+    function isHashy(token) {
+        return /\b[0-9a-f]{6,}\b/i.test(token) || /^[A-Za-z0-9_-]{10,}$/.test(token);
+    }
+    function isUtilityClass(cls) {
+        return /^(tw-|sm:|md:|lg:|xl:|2xl:|col-|row-|btn|card|container|grid|flex|gap-|p-|m-|sc-|chakra-|css-)/.test(cls);
+    }
+    function getAccessibleName(el) {
+        if (!el || el.nodeType !== 1) return '';
+        const direct = el.getAttribute('aria-label');
+        if (direct) return direct.trim();
+        const by = el.getAttribute('aria-labelledby');
+        if (by) {
+            const ref = el.ownerDocument.getElementById(by);
+            if (ref) {
+                const t = (ref.textContent || '').trim();
+                if (t) return t;
             }
-
-            const parser = new DOMParser();
-
-            const targetDoc = parser.parseFromString(targetHtml, 'text/html');
-            const targetEl = targetDoc.body.firstElementChild;
-            if (!targetEl) {
-                alert('Could not parse target element HTML.');
-                return;
+        }
+        if (el.id) {
+            const lab = el.ownerDocument.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+            if (lab) {
+                const t = (lab.textContent || '').trim();
+                if (t) return t;
             }
+        }
+        const t = (el.textContent || '').trim();
+        if (t && t.length < 60) return t;
+        return '';
+    }
 
-            let containerDoc;
-            if (containerHtml) {
-                containerDoc = parser.parseFromString(containerHtml, 'text/html');
-            } else {
-                const wrapperHtml = `<div id="wrapper">${targetHtml}</div>`;
-                containerDoc = parser.parseFromString(wrapperHtml, 'text/html');
+    function cssChain(el, { avoidDynamicClasses, pageScoped }, doc) {
+        const parts = [];
+        let cur = el;
+        while (cur && cur.tagName && cur.tagName.toLowerCase() !== 'html') {
+            let seg = cur.tagName.toLowerCase();
+            const keep = Array.from(cur.classList || [])
+                .filter(c => !avoidDynamicClasses || (!isUtilityClass(c) && !isHashy(c)));
+            if (keep.length) seg += '.' + keep.map(CSS.escape).join('.');
+            // prefer stable attributes
+            if (cur.id && !isHashy(cur.id)) seg = `#${CSS.escape(cur.id)}`; // id beats classes
+            const dt = cur.getAttribute && (cur.getAttribute('data-testid') || cur.getAttribute('data-test-id'));
+            if (dt) seg = `[data-testid="${dt}"]`;
+
+            parts.unshift(seg);
+            cur = cur.parentElement;
+            if (!pageScoped && parts.length >= 3) break; // short local chain when not forcing full path
+        }
+        if (pageScoped) {
+            // continue to body
+            while (cur && cur.tagName && cur.tagName.toLowerCase() !== 'body') {
+                let seg = cur.tagName.toLowerCase();
+                const keep = Array.from(cur.classList || [])
+                    .filter(c => !avoidDynamicClasses || (!isUtilityClass(c) && !isHashy(c)));
+                if (keep.length) seg += '.' + keep.map(CSS.escape).join('.');
+                if (cur.id && !isHashy(cur.id)) seg = `#${CSS.escape(cur.id)}`;
+                const dt = cur.getAttribute && (cur.getAttribute('data-testid') || cur.getAttribute('data-test-id'));
+                if (dt) seg = `[data-testid="${dt}"]`;
+                parts.unshift(seg);
+                cur = cur.parentElement;
             }
+        }
+        return parts.join(' > ');
+    }
 
-            const root = findElementMatch(containerDoc, targetEl);
-            if (!root) {
-                alert('No matching element found in DOM input.');
-                return;
-            }
+    function candidatesFor(el, opts) {
+        const out = [];
+        const dt = el.getAttribute && (el.getAttribute('data-testid') || el.getAttribute('data-test-id') || el.getAttribute('data-qa') || el.getAttribute('data-cy'));
+        if (dt) out.push({ sel: `[data-testid="${dt}"]`, fam: 'data' });
 
-            const dynamicPrefixes = ['ng-', 'jsx-', 'css-', 'tw-', 'sc-', 'chakra-', 'emotion-'];
+        let cur = el.parentElement;
+        while (cur && cur.tagName) {
+            const ancDt = cur.getAttribute && (cur.getAttribute('data-testid') || cur.getAttribute('data-test-id') || cur.getAttribute('data-qa') || cur.getAttribute('data-cy'));
+            if (ancDt) { out.push({ sel: `[data-testid="${ancDt}"] ${el.tagName.toLowerCase()}`, fam: 'data' }); break; }
+            cur = cur.parentElement;
+        }
 
-            // Best selector (prefers data-test-id or id, respects pageScoped)
-            const bestSelectorStr = buildSelectorPath(root, !pageScoped, true);
+        if (el.id && !isHashy(el.id)) out.push({ sel: `#${CSS.escape(el.id)}`, fam: 'id' });
 
-            // CSS selector (always full path from document root, no id usage)
-            const cssSelectorStr = buildSelectorPath(root, !pageScoped, false);
+        const role = el.getAttribute && (el.getAttribute('role') || ({
+            button: 'button', a: el.hasAttribute('href') ? 'link' : '', img: 'img', input: 'textbox', select: 'combobox'
+        }[el.tagName?.toLowerCase()] || ''));
+        const name = getAccessibleName(el);
+        if (role && name) out.push({ sel: `role=${role}|name="${name}"`, fam: 'role' });
 
-            const bestSelector = bestSelectorStr;
-            const cssSelector = cssSelectorStr;
-            const xpathSelector = buildXPathInDoc(root);
-
-            document.getElementById('bestSelector').innerText = formatSelectorForFramework(bestSelector, true);
-            document.getElementById('cssSelector').innerText = formatSelectorForFramework(cssSelector, true);
-            document.getElementById('xpathSelector').innerText = formatSelectorForFramework(xpathSelector, false);
-
-
-            function formatSelectorForFramework(selector, isCss) {
-                const escaped = selector.replace(/"/g, '\\"');
-
-                if (framework === 'playwright') {
-                    if (language === 'javascript' || language === 'python' || language === 'java') {
-                        return isCss ? `page.locator("${escaped}")` : `page.locator(${selector})`;
-                    } else if (language === 'csharp') {
-                        return isCss ? `page.Locator("${escaped}");` : `page.Locator(${selector});`;
-                    }
-                } else if (framework === 'selenium') {
-                    switch (language) {
-                        case 'javascript':
-                            return isCss ? `driver.findElement(By.cssSelector("${escaped}"))` : `driver.findElement(By.xpath("${escaped}"))`;
-                        case 'python':
-                            return isCss ? `driver.find_element(By.CSS_SELECTOR, "${escaped}")` : `driver.find_element(By.XPATH, "${escaped}")`;
-                        case 'java':
-                            return isCss ? `driver.findElement(By.cssSelector("${escaped}"));` : `driver.findElement(By.xpath("${escaped}"));`;
-                        case 'csharp':
-                            return isCss ? `driver.FindElement(By.CssSelector("${escaped}"));` : `driver.FindElement(By.XPath("${escaped}"));`;
-                    }
-                } else if (framework === 'cypress') {
-                    return isCss ? `cy.get("${escaped}")` : `cy.xpath("${escaped}")`;
-                } else if (framework === 'puppeteer') {
-                    return isCss ? `await page.$("${escaped}")` : `await page.$x("${escaped}")`;
-                } else if (framework === 'wdio') {
-                    return isCss ? `await $("${escaped}")` : `await $x("${escaped}")`;
-                } else {
-                    return '// Unsupported framework/language';
-                }
-            }
-
-            function copyToClipboard(id) {
-                const text = document.getElementById(id).innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('Copied to clipboard!');
-                }).catch(() => {
-                    alert('Failed to copy!');
-                });
-            }
-
-            function buildSelectorPath(el, limitToRoot, allowId) {
-                const path = [];
-                const rootLimit = limitToRoot ? el : null;
-
-                while (el && el.tagName && el.tagName !== 'BODY') {
-                    if (allowId && el.hasAttribute('data-test-id')) {
-                        path.unshift(`[data-test-id="${el.getAttribute('data-test-id')}"]`);
-                        break;
-                    }
-                    else if (allowId && el.hasAttribute('data-testid')) {
-                        path.unshift(`[data-testid="${el.getAttribute('data-testid')}"]`);
-                        break;
-                    } else if (allowId && el.id) {
-                        path.unshift(`#${CSS.escape(el.id)}`);
-                        break;
-                    }
-                    else {
-                        let part = el.tagName.toLowerCase();
-                        // TODO handle the case there are no classes
-                        const classList = Array.from(el.classList).filter(cls => {
-                            if (!avoidDynamicClasses) return true;
-                            return !dynamicPrefixes.some(prefix => cls.startsWith(prefix)) && !/^[a-zA-Z0-9]{8,}$/.test(cls);
-                        });
-                        if (classList.length) {
-                            part += '.' + classList.map(CSS.escape).join('.');
-                        }
-                        path.unshift(part);
-                    }
-
-                    if (limitToRoot && el === rootLimit) break;
-                    el = el.parentElement;
-                }
-
-                const last = path[path.length - 1];
-                const trimmedText = root.textContent.trim();
-                if (preferText && trimmedText && trimmedText.length < 60) {
-                    path[path.length - 1] = `${last}:has-text("${trimmedText}")`;
-                }
-
-                return path.join(' > ');
-            }
-
-            function isEqualStructure(el1, el2) {
-                if (!el1 || !el2 || el1.tagName !== el2.tagName) return false;
-
-                const attrs1 = Array.from(el1.attributes).map(a => [a.name, a.value]);
-                const attrs2 = Array.from(el2.attributes).map(a => [a.name, a.value]);
-
-                const attrMatch = attrs1.every(([name, value]) =>
-                    el2.getAttribute(name) === value
-                ) && attrs1.length === attrs2.length;
-
-                const children1 = Array.from(el1.children);
-                const children2 = Array.from(el2.children);
-
-                const childrenMatch =
-                    children1.length === children2.length &&
-                    children1.every((c, i) => isEqualStructure(c, children2[i]));
-
-                return attrMatch && childrenMatch;
-            }
-
-            function findElementMatch(container, target) {
-                const all = Array.from(container.body.querySelectorAll('*'));
-                const matches = all.filter(el => isEqualStructure(el, target));
-
-                if (!matches.length) return null;
-
-                return matches[0];
-            }
-
-            // XPath selector generator function
-
-            function buildXPathInDoc(el) {
-                if (!el) return '';
-
-                if (el.id) {
-                    // Skip ID usage for xpath, build full path instead
-                }
-
-                let current = el;
-                const parts = [];
-                while (current && current.nodeType === 1 && current.tagName.toLowerCase() !== 'html') {
-                    let index = 1;
-                    let sibling = current.previousElementSibling;
-                    while (sibling) {
-                        if (sibling.tagName === current.tagName) index++;
-                        sibling = sibling.previousElementSibling;
-                    }
-                    parts.unshift(`${current.tagName.toLowerCase()}[${index}]`);
-                    current = current.parentElement;
-                }
-                return '/' + parts.join('/');
-
-            }
+        ['aria-label', 'aria-labelledby', 'aria-describedby', 'name', 'title', 'alt', 'placeholder'].forEach(attr => {
+            const v = el.getAttribute && el.getAttribute(attr);
+            if (v && v.trim().length && v.length < 80) out.push({ sel: `[${attr}="${v.trim()}"]`, fam: 'aria' });
         });
 
-        function copyToClipboard(id) {
-            const text = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
-            }).catch(() => {
-                alert('Failed to copy!');
-            });
+        out.push({ sel: cssChain(el, opts, el.ownerDocument), fam: 'css' });
+
+        return out;
+    }
+
+    function scoreCandidate(c, el, doc, opts) {
+        let s = 0; const reasons = []; const selector = c.sel; const fam = c.fam;
+        const hasData = /^\[(data-test(id)?|data-qa|data-cy)/.test(selector);
+        const hasId = selector.startsWith('#');
+        const usesRole = fam === 'role';
+        const usesAria = fam === 'aria' || /\[aria-/.test(selector);
+        const isXPath = fam === 'xpath';
+        const hasNth = /:(nth|of-type)|\[\d+\]$/.test(selector);
+        const lenPenalty = Math.max(0, selector.length - 40);
+
+        if (hasData) { s += 40; reasons.push('data-testid'); }
+        if (hasId) { s += 30; reasons.push('id'); }
+        if (usesRole) { s += 28; reasons.push('role+name'); }
+        if (usesAria) { s += 18; reasons.push('aria'); }
+        if (/\.(js-|qa-)/.test(selector)) { s += 14; reasons.push('qa class'); }
+        if (/\.(tw-|sm:|md:|lg:|xl:|2xl:|btn|card|container|grid|flex|gap-|p-|m-)/.test(selector)) { s -= 12; reasons.push('utility'); }
+        if (hasNth) { s -= 25; reasons.push('nth'); }
+        if (isXPath) { s -= 15; reasons.push('xpath'); }
+        if (/name="[^"]*\d[^"]*"/.test(selector)) { s -= 10; reasons.push('numeric text'); }
+        s -= Math.floor(lenPenalty / 5);
+
+        let count = 0;
+        try { count = doc.querySelectorAll(selector).length; } catch { /* role syntax not CSS */ }
+        if (fam === 'role') {
+            const n = getAccessibleName(el);
+            count = (n && n.length < 60) ? 1 : 2;
         }
-    </script>
+        if (count === 1) { s += 8; reasons.push('unique'); }
+        else if (count === 0) { s -= 20; reasons.push('not-match'); }
+        else { s -= 8; reasons.push('multi'); }
 
+        return { score: s, reasons };
+    }
+
+    function pickBest(el, doc, opts) {
+        const base = candidatesFor(el, opts);
+        if (opts.preferText) {
+            const t = getAccessibleName(el);
+            if (t) {
+                const baseCss = base.find(c => c.fam === 'css');
+                if (baseCss) base.push({ sel: `${baseCss.sel}:has-text("${t.replace(/"/g, '\\"')}")`, fam: 'text' });
+            }
+        }
+        const scored = base.map(c => ({ ...c, ...scoreCandidate(c, el, doc, opts) }))
+            .sort((a, b) => b.score - a.score || a.sel.length - b.sel.length);
+        return { best: scored[0], all: scored };
+    }
+
+    // --- XPath builder (kept simple, non‑breaking) ---
+    function buildXPath(el) {
+        if (el.nodeType !== 1) return '';
+        if (el.id && !isHashy(el.id)) return `//*[@id='${el.id}']`;
+        const dt = el.getAttribute && (el.getAttribute('data-testid') || el.getAttribute('data-test-id'));
+        if (dt) return `//*[@data-testid='${dt}']`;
+        const idx = indexAmongType(el);
+        const tag = el.tagName.toLowerCase();
+        if (!el.parentElement) return `//${tag}`;
+        return `${buildXPath(el.parentElement)}/${tag}[${idx}]`;
+    }
+    function indexAmongType(el) {
+        let i = 0; let n = 0; const tag = el.tagName;
+        for (const child of el.parentElement.children) {
+            if (child.tagName === tag) { n++; if (child === el) i = n; }
+        }
+        return i || 1;
+    }
+
+    // --- Framework output formatting ---
+    function formatForFramework(selector, family, framework, language) {
+        const isCss = family !== 'xpath';
+        const escaped = selector.replace(/"/g, '\\"');
+        if (framework === 'playwright') {
+            // Special handling for role pseudo
+            if (family === 'role') {
+                const m = selector.match(/^role=([^|]+)\|name="([\s\S]+)"$/);
+                if (m) {
+                    const role = m[1]; const name = m[2].replace(/"/g, '\\"');
+                    if (language === 'javascript') return `page.getByRole('${role}', { name: '${name}' })`;
+                    if (language === 'python') return `page.get_by_role('${role}', name='${name}')`;
+                    if (language === 'java') return `page.getByRole(ARIA_ROLE.${role.toUpperCase()}, new Page.GetByRoleOptions().setName("${name}"))`;
+                    if (language === 'csharp') return `page.GetByRole(AriaRole.${capitalize(role)}, new() { Name = "${name}" })`;
+                }
+            }
+            if (isCss) {
+                if (language === 'javascript') return `page.locator("${escaped}")`;
+                if (language === 'python') return `page.locator("${escaped}")`;
+                if (language === 'java') return `page.locator("${escaped}")`;
+                if (language === 'csharp') return `page.Locator("${escaped}")`;
+            } else {
+                // XPath requires explicit prefix in Playwright
+                if (language === 'javascript') return `page.locator("xpath=${escaped}")`;
+                if (language === 'python') return `page.locator("xpath=${escaped}")`;
+                if (language === 'java') return `page.locator("xpath=${escaped}")`;
+                if (language === 'csharp') return `page.Locator("xpath=${escaped}")`;
+            }
+        }
+        if (framework === 'cypress') {
+            if (family === 'role') {
+                const m = selector.match(/^role=([^|]+)\|name="([\s\S]+)"$/);
+                if (m) return `cy.findByRole('${m[1]}', { name: '${m[2]}' })`;
+            }
+            return isCss ? `cy.get('${selector}')` : `cy.xpath('${selector}')`;
+        }
+        if (framework === 'rtl') {
+            if (family === 'role') {
+                const m = selector.match(/^role=([^|]+)\|name="([\s\S]+)"$/);
+                if (m) return `screen.getByRole('${m[1]}', { name: '${m[2]}' })`;
+            }
+            // RTL prefers role/label; fallback to querySelector
+            return isCss ? `container.querySelector('${selector}')` : `container.evaluateXPath('${selector}')`;
+        }
+        if (framework === 'wdio') {
+            return isCss ? `$('${selector}')` : `$('xpath:${selector}')`;
+        }
+        return selector;
+    }
+
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+    // --- Orchestration ---
+    function computeAll() {
+        if (!selectedEl) return;
+        const doc = iframe.contentDocument;
+        const avoidDynamic = document.getElementById('avoidDynamic').checked;
+        const preferText = document.getElementById('preferText').checked && document.getElementById('framework').value === 'playwright';
+        const pageScoped = document.getElementById('pageScoped').checked;
+        const framework = document.getElementById('framework').value;
+        const language = document.getElementById('language').value;
+
+        // CSS chain (independent switch)
+        const cssSel = cssChain(selectedEl, { avoidDynamicClasses: avoidDynamic, pageScoped }, doc);
+
+        // Best via scoring
+        const { best, all } = pickBest(selectedEl, doc, { avoidDynamicClasses: avoidDynamic, pageScoped, preferText });
+
+        // XPath (non‑breaking, still available)
+        const xp = buildXPath(selectedEl);
+
+        // Outputs (formatted per framework)
+        document.getElementById('bestOut').textContent = formatForFramework(best.sel, best.fam, framework, language);
+        document.getElementById('cssOut').textContent = formatForFramework(cssSel, 'css', framework, language);
+        document.getElementById('xpathOut').textContent = formatForFramework(xp, 'xpath', framework, language);
+
+        // Alternates panel (top 4 others)
+        const alts = document.getElementById('alts');
+        alts.innerHTML = '';
+        all.slice(0, 5).forEach((c, i) => {
+            const div = document.createElement('div');
+            div.className = 'alt';
+            div.innerHTML = `<h3>#${i + 1} ${i === 0 ? '<span class="k">(chosen)</span>' : ''}</h3>
+      <div class="meta">family: <span class="k">${c.fam}</span> · score: <span class="v score">${c.score}</span> · ${c.reasons.join(', ')}</div>
+      <div class="code">${formatForFramework(c.sel, c.fam, framework, language)}</div>`;
+            alts.appendChild(div);
+        });
+    }
+
+    // --- Events ---
+    $('#render').addEventListener('click', renderHTML);
+    $('#recompute').addEventListener('click', computeAll);
+    $$('button[data-copy]').forEach(b => b.addEventListener('click', () => copyFrom(b.getAttribute('data-copy'))));
+
+    // Boot with a small demo sample
+    const demo = `
+<section id="account">
+  <h1>Billing</h1>
+  <form data-testid="billing-form">
+    <label for="card">Card number</label>
+    <input id="card" name="card" placeholder="0000 0000 0000 0000" />
+    <button role="button" aria-label="Save changes">Save</button>
+  </form>
+  <ul class="grid grid-cols-3 gap-2">
+    <li class="card">
+      <button class="btn btn-primary js-edit" aria-label="Edit item">Edit</button>
+    </li>
+  </ul>
+</section>`;
+
+    document.getElementById('html-input').value = demo;
+    renderHTML();
+</script>
 </body>
-
 </html>
