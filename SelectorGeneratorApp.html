@@ -391,9 +391,11 @@
                         <div class="pill">What this app does</div>
                         <ul class="hint" style="margin-top:8px; line-height:1.6;">
                             <li>Generates multiple selector candidates and scores them for <b>stability</b> and
-                                <b>readability</b>.</li>
+                                <b>readability</b>.
+                            </li>
                             <li>Prefers <code>data-testid</code>, stable <code>#id</code>, <b>role+name</b>, then
-                                <b>aria</b>, then CSS path.</li>
+                                <b>aria</b>, then CSS path.
+                            </li>
                             <li>Penalizes brittle patterns (e.g., <code>:nth-child</code>, utility classes, long
                                 chains).</li>
                             <li>Shows Top 5 alternates with scores and reasons.</li>
@@ -622,6 +624,7 @@
         return `${buildXPath(el.parentElement)}/${tag}[${idx}]`;
     }
     function indexAmongType(el) {
+        if (!el.parentElement) return 1;
         let i = 0; let n = 0; const tag = el.tagName;
         for (const child of el.parentElement.children) {
             if (child.tagName === tag) { n++; if (child === el) i = n; }
